@@ -1,0 +1,69 @@
+{
+    "tasks": [
+        {
+            "name": "Send Daily Sales Report Email",
+            "type": "send_email",
+            "parameters": {
+                "recipients": {
+                    "to": ["your_test_email@example.com"],
+                    "cc": ["your_gmail_address@gmail.com"]
+                },
+                "subject_template": "Daily Sales Report - {report_date}",
+                "body_template": "Dear Team,\n\nPlease find the latest sales report for {report_date} attached. Total sales: ${sales_figure:.2f}. Total active customers: {total_customers}.\n\nBest regards,\nAutomated Agent",
+                "attachments": [
+                    "data/reports/sales_report.pdf",
+                    "data/reports/summary_data.xlsx"
+                ],
+                "is_html": false
+            }
+        },
+        {
+            "name": "Simulate Incoming Request Email (to self)",
+            "type": "send_email",
+            "parameters": {
+                "recipients": {
+                    "to": ["your_gmail_address@gmail.com"]
+                },
+                "subject_template": "Data Request for {report_date} - Urgent",
+                "body_template": "Hello Agent,\n\nWe need the latest data for {report_date}. Please process urgently. This is an urgent request for new data processing.",
+                "attachments": ["data/reports/sales_report.pdf"],
+                "is_html": false
+            }
+        },
+        {
+            "name": "Process Incoming Data Requests",
+            "type": "process_inbox",
+            "parameters": {
+                "mailbox": "INBOX",
+                "search_criteria": {
+                    "status": "UNSEEN",
+                    "from_sender": "your_gmail_address@gmail.com",
+                    "subject_contains": "Data Request"
+                },
+                "download_attachments_base_dir": "data/incoming_attachments",
+                "rules": [
+                    {
+                        "if": {
+                            "subject_contains": "Urgent",
+                            "has_attachments": true
+                        },
+                        "then": {
+                            "send_sms_alert": true,
+                            "alert_phone_numbers": ["1234567890@txt.att.net"],
+                            "alert_message_template": "URGENT: New Data Request email received from {sender} - Subject: {subject}."
+                        }
+                    },
+                    {
+                        "if": {
+                            "body_contains": "new data processing"
+                        },
+                        "then": {
+                            "reply_with_template": "Agent received your request for '{subject}'. We are now processing the new data.",
+                            "reply_subject_template": "Re: {subject} - Received & Processing"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
